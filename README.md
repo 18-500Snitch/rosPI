@@ -34,9 +34,9 @@ C-c
 ## TODO:
 - [x] catkin\_make
 - [x] test SLAM and RPLIDAR separate from quadcopter 
-    works until angle change too great
-- [] send RPLIDAR data to python code via sockets for navigation purposes
-- [] test SLAM and RPLIDAR mounted on quadcopter
-- [] fine tune arguments/parameters
-- [] _integrate Pixhawk odometry data for better mapping_
-- [] _integrate range finder for 2.5D mapping_
+  - works until angle change too great
+- [ ] send RPLIDAR data to python code via sockets for navigation purposes
+- [ ] test SLAM and RPLIDAR mounted on quadcopter
+- [ ] fine tune arguments/parameters
+- [ ] _integrate Pixhawk odometry data for better mapping_
+- [ ] _integrate range finder for 2.5D mapping_
