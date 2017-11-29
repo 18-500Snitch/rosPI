@@ -1,40 +1,40 @@
 # ROS PI
 ## ROS Packages:
-- rplidar\_ros
-- hector\_slam_
+* rplidar\_ros
+* hector\_slam_
 
-###[rplidar\_ros](http://wiki.ros.org/rplidar)
-####Brief:
+### [rplidar\_ros](http://wiki.ros.org/rplidar)
+#### Brief:
   ROS interface to rplidar\_sdk
-####Launch:
+#### Launch:
   Unplug than replug RPLIDAR USB
 ```
 roslaunch rplidar_ros rplidar.launch
 ```
-####Close:
+#### Close:
 ```
 C-c
 ```
-####Modifications:
+#### Modifications:
   - uses USB-rules namings
-###[hector\_slam](http://wiki.ros.org/rplidar)
-####Brief:
+### [hector\_slam](http://wiki.ros.org/rplidar)
+#### Brief:
   Simultaneous Localization and Mapping (no need for odometry)
-####Launch:
+#### Launch:
 ```
 roslaunch hector\_slam\_launch tutorial.launch
 ```
-####Close:
+#### Close:
 ```
 C-c
 ```
-####Modifications:
+#### Modifications:
   - Changes made to bypass optional odometry frame.
 
 ## TODO:
 - [x] catkin\_make
 - [x] test SLAM and RPLIDAR separate from quadcopter 
-  - works until angle change too great
+  * works until angle change too great
 - [] send RPLIDAR data to python code via sockets for navigation purposes
 - [] test SLAM and RPLIDAR mounted on quadcopter
 - [] fine tune arguments/parameters
