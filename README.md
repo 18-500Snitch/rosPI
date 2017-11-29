@@ -22,7 +22,7 @@ C-c
   Simultaneous Localization and Mapping (no need for odometry)
 #### Launch:
 ```
-roslaunch hector\_slam\_launch tutorial.launch
+roslaunch hector_slam_launch tutorial.launch
 ```
 #### Close:
 ```
@@ -34,7 +34,7 @@ C-c
 ## TODO:
 - [x] catkin\_make
 - [x] test SLAM and RPLIDAR separate from quadcopter 
-  * works until angle change too great
+    works until angle change too great
 - [] send RPLIDAR data to python code via sockets for navigation purposes
 - [] test SLAM and RPLIDAR mounted on quadcopter
 - [] fine tune arguments/parameters
