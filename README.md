@@ -1,7 +1,7 @@
 # ROS PI
 ## ROS Packages:
-* rplidar\_ros
-* hector\_slam_
+- rplidar\_ros
+- hector\_slam_
 
 ### [rplidar\_ros](http://wiki.ros.org/rplidar)
 #### Brief:
