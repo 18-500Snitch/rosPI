@@ -3,6 +3,6 @@ prefix=/home/pi/catkin_ws/devel
 Name: hector_map_tools
 Description: Description of hector_map_tools
 Version: 0.3.5
-Cflags: -I/home/pi/catkin_ws/src/hector_slam/hector_map_tools/include
+Cflags: -I/home/pi/catkin_ws/src/slam/hector_map_tools/include
 Libs: -L/home/pi/catkin_ws/devel/lib 
 Requires: nav_msgs
