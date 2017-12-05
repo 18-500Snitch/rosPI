@@ -17,7 +17,7 @@ C-c
 ```
 #### Modifications:
   - uses USB-rules namings
-### [hector\_slam](http://wiki.ros.org/rplidar)
+### [hector\_slam](http://wiki.ros.org/hector_slam)
 #### Brief:
   Simultaneous Localization and Mapping (no need for odometry)
 #### Launch:
