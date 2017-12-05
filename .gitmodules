@@ -1,6 +1,0 @@
-[submodule "src/rplidar"]
-	path = src/rplidar
-	url = https://github.com/robopeak/rplidar_ros
-[submodule "src/slam"]
-	path = src/slam
-	url = https://github.com/tu-darmstadt-ros-pkg/hector_slam

@@ -1,2 +1,2 @@
-rplidar:slam/hector_compressed_map_transport:slam/hector_geotiff:slam/hector_geotiff_plugins:slam/hector_imu_attitude_to_tf:slam/hector_imu_tools:slam/hector_map_server:slam/hector_map_tools:slam/hector_mapping:slam/hector_marker_drawing:slam/hector_nav_msgs:slam/hector_slam:slam/hector_slam_launch:slam/hector_trajectory_server
+
 -DCATKIN_DEVEL_PREFIX=/home/pi/catkin_ws/devel -DCMAKE_INSTALL_PREFIX=/home/pi/catkin_ws/install -G Unix Makefiles
