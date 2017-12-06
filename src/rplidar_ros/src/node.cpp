@@ -36,12 +36,17 @@
 #include "sensor_msgs/LaserScan.h"
 #include "std_srvs/Empty.h"
 #include "rplidar.h"
+// FIFO
+#include <sys/stat.h>
 
 #ifndef _countof
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
 #endif
 
 #define DEG2RAD(x) ((x)*M_PI/180.)
+
+// FIFO
+#define PIPE_PATH "/tmp/rplidar.fifo"
 
 using namespace rp::standalone::rplidar;
 
@@ -54,6 +59,10 @@ void publish_scan(ros::Publisher *pub,
                   float angle_min, float angle_max,
                   std::string frame_id)
 {
+    // FIFO
+    int fifo, fifo_num, q;
+    char *rplidar_data;
+    
     static int scan_count = 0;
     sensor_msgs::LaserScan scan_msg;
 
@@ -98,6 +107,22 @@ void publish_scan(ros::Publisher *pub,
                 scan_msg.ranges[node_count-1-i] = read_value;
             scan_msg.intensities[node_count-1-i] = (float) (nodes[i].sync_quality >> 2);
         }
+    }
+
+    // FIFO
+    // make data sting
+    sprintf(rplidar_data, "%f %f", angle_min, angle_max);
+    for(q = 0; q < node_count; q++){
+      sprintf(rplidar_data, "%s %f", rplidar_data, scan_msg.ranges[q]);
+    }
+    // send data
+    if((fifo = open(PIPE_PATH, O_WRONLY)) < 0){
+        printf("failed to open fifo in rplidar");
+    }else{
+        if((fifo_status = write(fifo, rplidar_data, strlen(rplidar_data))) < 0){
+            printf("failed to write rplidar_data");
+        }
+        close(fifo);
     }
 
     pub->publish(scan_msg);
@@ -239,6 +264,18 @@ int main(int argc, char * argv[]) {
     ros::Time start_scan_time;
     ros::Time end_scan_time;
     double scan_duration;
+    
+    // FIFO
+    struct stat fifo_stat;
+    // only make fifo once, not sure which node runs first
+    if(stat(PIPE_PATH, &fifo_stat) < 0){
+      // does not exist
+      if(!mkfifo(PIPE_PATH, 0666)){
+          printf("mkfifo error");
+          return -1;
+      }
+    }
+
     while (ros::ok()) {
 
         rplidar_response_measurement_node_t nodes[360*2];
