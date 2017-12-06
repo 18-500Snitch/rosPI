@@ -38,6 +38,7 @@
 #include "rplidar.h"
 // FIFO
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #ifndef _countof
 #define _countof(_Array) (int)(sizeof(_Array) / sizeof(_Array[0]))
@@ -119,7 +120,7 @@ void publish_scan(ros::Publisher *pub,
     if((fifo = open(PIPE_PATH, O_WRONLY)) < 0){
         printf("failed to open fifo in rplidar");
     }else{
-        if((fifo_status = write(fifo, rplidar_data, strlen(rplidar_data))) < 0){
+        if((fifo_num = write(fifo, rplidar_data, strlen(rplidar_data))) < 0){
             printf("failed to write rplidar_data");
         }
         close(fifo);
