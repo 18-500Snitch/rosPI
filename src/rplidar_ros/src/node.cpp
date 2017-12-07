@@ -101,8 +101,6 @@ void publish_scan(ros::Publisher *pub,
        our code uses for avoidance, so all decimals not necessary anyway
        kept all decimals for angles because calculations
        0 is recorded as 0 to further save space */
-    printf("creating rplidar_data message\n");
-    
     total_len += snprintf(rplidar_data + total_len, (2 * DATA_CHARS),
         "%f %f %f", scan_msg.angle_min, scan_msg.angle_max,
          scan_msg.angle_increment); // FIFO
@@ -139,28 +137,23 @@ void publish_scan(ros::Publisher *pub,
 
     // FIFO
     // MAX_BUF chosen so this should never happen, but just in case
-    if(total_len >= MAX_BUF){
+    /* if(total_len >= MAX_BUF){
         printf("Error: rplidar_data buffer exceeded.\n");
         printf("\tLength of Data: %d", total_len);
         printf("\tFailed to transmit up to %d bytes of data.",
         total_len - MAX_BUF);
         return; // better to lose a frame than have incomplete/corrupt data
     }
-    printf("rplidar_data: %s\n", rplidar_data);
-    printf("rplidar_data length: %d\n", total_len);
     // send data
-    printf("opening pipe\n");
     if((fifo = open(PIPE_PATH, O_WRONLY)) < 0){
         printf("failed to open fifo in rplidar\n");
     }else{
-        printf("writing to pipe\n");
         // + 1 to include null terminator
         if((fifo_num = write(fifo, rplidar_data, (total_len + 1))) < 0){
             printf("failed to write rplidar_data: %d\n", fifo_num);
         }
-        printf("closing pipe\n");
         close(fifo);
-    }
+    } */
 
     pub->publish(scan_msg);
 }
