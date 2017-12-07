@@ -48,6 +48,10 @@
 
 // FIFO
 #define PIPE_PATH "/tmp/rplidar.fifo"
+// max number of characters a data point requires
+#define DATA_CHARS 8
+// max size of rplidar_data message
+#define MAX_BUF 4096
 
 using namespace rp::standalone::rplidar;
 
@@ -61,8 +65,8 @@ void publish_scan(ros::Publisher *pub,
                   std::string frame_id)
 {
     // FIFO
-    int fifo, fifo_num, q;
-    char *rplidar_data;
+    int fifo, fifo_num, total_len = 0;
+    char rplidar_data[MAX_BUF];
     
     static int scan_count = 0;
     sensor_msgs::LaserScan scan_msg;
@@ -90,39 +94,69 @@ void publish_scan(ros::Publisher *pub,
     scan_msg.intensities.resize(node_count);
     scan_msg.ranges.resize(node_count);
     bool reverse_data = (!inverted && reversed) || (inverted && !reversed);
+    
+    // FIFO
+    // make data string in loop that already exists
+    /* data points limited to 4 decimal spaces for size and speed of transfer
+       our code uses for avoidance, so all decimals not necessary anyway
+       0 is recorded as 0 to further save space */
+    printf("creating rplidar_data message\n");
+    
+    total_len += snprintf(rplidar_data + total_len, (2 * DATA_CHARS),
+        "%.4f %.4f", angle_min, angle_max); // FIFO
+
     if (!reverse_data) {
         for (size_t i = 0; i < node_count; i++) {
             float read_value = (float) nodes[i].distance_q2/4.0f/1000;
-            if (read_value == 0.0)
+            if (read_value == 0.0){
                 scan_msg.ranges[i] = std::numeric_limits<float>::infinity();
-            else
+                total_len += snprintf(rplidar_data + total_len,
+                    DATA_CHARS, " 0"); // FIFO
+            }else{
                 scan_msg.ranges[i] = read_value;
+                total_len += snprintf(rplidar_data + total_len,
+                    DATA_CHARS, " %.4f", read_value); // FIFO
+            }
             scan_msg.intensities[i] = (float) (nodes[i].sync_quality >> 2);
         }
     } else {
         for (size_t i = 0; i < node_count; i++) {
-            float read_value = (float)nodes[i].distance_q2/4.0f/1000;
-            if (read_value == 0.0)
-                scan_msg.ranges[node_count-1-i] = std::numeric_limits<float>::infinity();
-            else
-                scan_msg.ranges[node_count-1-i] = read_value;
-            scan_msg.intensities[node_count-1-i] = (float) (nodes[i].sync_quality >> 2);
+            float read_value = (float)nodes[(node_count - 1 - i)].distance_q2/4.0f/1000;
+            if (read_value == 0.0){
+                scan_msg.ranges[i] = std::numeric_limits<float>::infinity();
+                total_len += snprintf(rplidar_data + total_len,
+                    DATA_CHARS, " 0"); // FIFO
+            }else{
+                scan_msg.ranges[i] = read_value;
+                total_len += snprintf(rplidar_data + total_len,
+                    DATA_CHARS, " %.4f", read_value); // FIFO
+            }
+            scan_msg.intensities[i] = (float) (nodes[i].sync_quality >> 2);
         }
     }
 
     // FIFO
-    // make data sting
-    sprintf(rplidar_data, "%f %f", angle_min, angle_max);
-    for(q = 0; q < node_count; q++){
-      sprintf(rplidar_data, "%s %f", rplidar_data, scan_msg.ranges[q]);
+    // MAX_BUF chosen so this should never happen, but just in case
+    if(total_len >= MAX_BUF){
+        printf("Error: rplidar_data buffer exceeded.\n");
+        printf("\tLength of Data: %d", total_len);
+        printf("\tFailed to transmit up to %d bytes of data.",
+        total_len - MAX_BUF);
+        return; // better to lose a frame than have incomplete/corrupt data
     }
+    printf("rplidar_data: %s\n", rplidar_data);
+    printf("rplidar_data length: %d\n", total_len);
     // send data
+    printf("opening pipe\n");
     if((fifo = open(PIPE_PATH, O_WRONLY)) < 0){
-        printf("failed to open fifo in rplidar");
+        printf("failed to open fifo in rplidar\n");
     }else{
-        if((fifo_num = write(fifo, rplidar_data, strlen(rplidar_data))) < 0){
-            printf("failed to write rplidar_data");
+        printf("writing to pipe\n");
+        // + 1 to include null terminator
+        if((fifo_num = write(fifo, rplidar_data, (total_len + 1))) < 0){
+            printf("failed to write rplidar_data: %d\n", fifo_num);
         }
+        printf("closing pipe\n");
         close(fifo);
     }
 
@@ -231,12 +265,10 @@ int main(int argc, char * argv[]) {
 
     // create the driver instance
     drv = RPlidarDriver::CreateDriver(RPlidarDriver::DRIVER_TYPE_SERIALPORT);
-    
     if (!drv) {
         fprintf(stderr, "Create Driver fail, exit\n");
         return -2;
     }
-
     // make connection...
     if (IS_FAIL(drv->connect(serial_port.c_str(), (_u32)serial_baudrate))) {
         fprintf(stderr, "Error, cannot bind to the specified serial port %s.\n"
@@ -244,18 +276,15 @@ int main(int argc, char * argv[]) {
         RPlidarDriver::DisposeDriver(drv);
         return -1;
     }
-
     // get rplidar device info
     if (!getRPLIDARDeviceInfo(drv)) {
         return -1;
     }
-
     // check health...
     if (!checkRPLIDARHealth(drv)) {
         RPlidarDriver::DisposeDriver(drv);
         return -1;
     }
-
     ros::ServiceServer stop_motor_service = nh.advertiseService("stop_motor", stop_motor);
     ros::ServiceServer start_motor_service = nh.advertiseService("start_motor", start_motor);
 
@@ -267,15 +296,18 @@ int main(int argc, char * argv[]) {
     double scan_duration;
     
     // FIFO
+    printf("making fifo\n");
+    int fifo_status;
     struct stat fifo_stat;
     // only make fifo once, not sure which node runs first
     if(stat(PIPE_PATH, &fifo_stat) < 0){
       // does not exist
-      if(!mkfifo(PIPE_PATH, 0666)){
-          printf("mkfifo error");
+      if((fifo_status = mkfifo(PIPE_PATH, 0666)) < 0){
+          printf("mkfifo error: %d\n", fifo_status);
           return -1;
       }
     }
+    printf("fifo made\n");
 
     while (ros::ok()) {
 
