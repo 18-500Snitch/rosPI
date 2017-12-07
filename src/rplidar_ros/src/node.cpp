@@ -137,7 +137,7 @@ void publish_scan(ros::Publisher *pub,
 
     // FIFO
     // MAX_BUF chosen so this should never happen, but just in case
-    /* if(total_len >= MAX_BUF){
+    if(total_len >= MAX_BUF){
         printf("Error: rplidar_data buffer exceeded.\n");
         printf("\tLength of Data: %d", total_len);
         printf("\tFailed to transmit up to %d bytes of data.",
@@ -153,7 +153,7 @@ void publish_scan(ros::Publisher *pub,
             printf("failed to write rplidar_data: %d\n", fifo_num);
         }
         close(fifo);
-    } */
+    }
 
     pub->publish(scan_msg);
 }
@@ -291,7 +291,6 @@ int main(int argc, char * argv[]) {
     double scan_duration;
     
     // FIFO
-    printf("making fifo\n");
     int fifo_status;
     struct stat fifo_stat;
     // only make fifo once, not sure which node runs first
@@ -302,7 +301,6 @@ int main(int argc, char * argv[]) {
           return -1;
       }
     }
-    printf("fifo made\n");
 
     while (ros::ok()) {
 
