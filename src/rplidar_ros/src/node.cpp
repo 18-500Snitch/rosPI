@@ -99,11 +99,13 @@ void publish_scan(ros::Publisher *pub,
     // make data string in loop that already exists
     /* data points limited to 4 decimal spaces for size and speed of transfer
        our code uses for avoidance, so all decimals not necessary anyway
+       kept all decimals for angles because calculations
        0 is recorded as 0 to further save space */
     printf("creating rplidar_data message\n");
     
     total_len += snprintf(rplidar_data + total_len, (2 * DATA_CHARS),
-        "%.4f %.4f", angle_min, angle_max); // FIFO
+        "%f %f %f", scan_msg.angle_min, scan_msg.angle_max,
+         scan_msg.angle_increment); // FIFO
 
     if (!reverse_data) {
         for (size_t i = 0; i < node_count; i++) {
