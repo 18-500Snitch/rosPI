@@ -101,7 +101,8 @@ void publish_scan(ros::Publisher *pub,
        our code uses for avoidance, so all decimals not necessary anyway
        kept all decimals for angles because calculations
        0 is recorded as 0 to further save space */
-    total_len += snprintf(rplidar_data + total_len, (2 * DATA_CHARS),
+    // 3 pieces of data, 4 times factor since not truncating
+    total_len += snprintf(rplidar_data + total_len, (3 * DATA_CHARS * 4),
         "%f %f %f", scan_msg.angle_min, scan_msg.angle_max,
          scan_msg.angle_increment); // FIFO
 
